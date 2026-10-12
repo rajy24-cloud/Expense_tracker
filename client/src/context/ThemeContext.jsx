@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react'
 
 const ThemeContext = createContext(null)
 
-const THEME_KEY = 'fintrack-theme'
+const THEME_KEY = 'pertrack-theme'
 
 function applyTheme(theme) {
   const root = document.documentElement
@@ -23,7 +23,7 @@ function applyTheme(theme) {
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
-    return localStorage.getItem(THEME_KEY) || 'system'
+    return localStorage.getItem(THEME_KEY) || localStorage.getItem('fintrack-theme') || 'system'
   })
 
   useEffect(() => {

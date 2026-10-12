@@ -22,7 +22,7 @@ export default function Navbar({ onMenuClick, onAddTransaction }) {
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const title = PAGE_TITLES[pathname] || 'FinTrack'
+  const title = PAGE_TITLES[pathname] || 'PerTrack'
 
   const cycleTheme = () => {
     const themes = ['light', 'dark', 'system']

@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
               <Wallet className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent">
-              FinTrack
+              PerTrack
             </span>
           </div>
           <button

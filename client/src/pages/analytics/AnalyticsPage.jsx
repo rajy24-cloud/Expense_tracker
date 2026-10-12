@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns'
+import { format, subMonths, startOfMonth, endOfMonth, startOfYear } from 'date-fns'
 import api from '../../services/api'
 import { useAuth } from '../../hooks/useAuth'
 import toast from 'react-hot-toast'
@@ -29,9 +29,14 @@ export default function AnalyticsPage() {
     const fetchAnalytics = async () => {
       setLoading(true)
       try {
-        const months = PRESETS[preset].months
-        const endDate = format(endOfMonth(new Date()), 'yyyy-MM-dd')
-        const startDate = format(startOfMonth(subMonths(new Date(), months || 1)), 'yyyy-MM-dd')
+        const now = new Date()
+        const endDate = format(endOfMonth(now), 'yyyy-MM-dd')
+        let startDate
+        if (PRESETS[preset].label === 'This Year') {
+          startDate = format(startOfYear(now), 'yyyy-MM-dd')
+        } else {
+          startDate = format(startOfMonth(subMonths(now, PRESETS[preset].months)), 'yyyy-MM-dd')
+        }
         const res = await api.get('/analytics/analytics', { params: { startDate, endDate } })
         setData(res.data.data || res.data)
       } catch (err) {
@@ -43,7 +48,8 @@ export default function AnalyticsPage() {
     fetchAnalytics()
   }, [preset])
 
-  const topCategories = data?.categoryBreakdown?.slice(0, 5) || []
+  const categoryData = data?.categoryBreakdown || data?.categoryDistribution || []
+  const topCategories = categoryData.slice(0, 5)
 
   return (
     <div className="space-y-6 fade-in">
@@ -77,7 +83,7 @@ export default function AnalyticsPage() {
       {/* Charts 2x2 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <MonthlyChart data={data?.monthlyData || []} loading={loading} currency={currency} />
-        <CategoryChart data={data?.categoryBreakdown || []} loading={loading} currency={currency} />
+        <CategoryChart data={categoryData} loading={loading} currency={currency} />
         <SavingsTrendChart data={data?.savingsTrend || []} loading={loading} currency={currency} />
 
         {/* Top Categories */}
@@ -94,22 +100,29 @@ export default function AnalyticsPage() {
           ) : (
             <ul className="space-y-3">
               {topCategories.map((cat, i) => {
-                const color = getCategoryColor(cat.category || cat.name)
+                const categoryName = cat.category || cat.name || 'Other'
+                const color = getCategoryColor(categoryName)
                 const total = data?.totalExpenses || 1
-                const pct = ((cat.total || cat.amount || 0) / total * 100).toFixed(1)
+                const amount = cat.total ?? cat.amount ?? 0
+                const pct = cat.percentage != null
+                  ? Number(cat.percentage).toFixed(1)
+                  : ((amount / total) * 100).toFixed(1)
                 return (
                   <li key={i} className="flex items-center gap-3">
                     <span className="text-xs font-bold text-slate-400 w-4">{i + 1}</span>
                     <div className="flex-1">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{cat.category || cat.name}</span>
-                        <span className="text-slate-500">{formatCurrency(cat.total || cat.amount || 0, currency)}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{categoryName}</span>
+                        <span className="text-slate-500">{formatCurrency(amount, currency)}</span>
                       </div>
-                      <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full">
-                        <div className="h-1.5 rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                      <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className="h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.min(100, Math.max(0, Number(pct)))}%`, backgroundColor: color }}
+                        />
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400 w-10 text-right">{pct}%</span>
+                    <span className="text-xs text-slate-400 w-12 text-right">{pct}%</span>
                   </li>
                 )
               })}

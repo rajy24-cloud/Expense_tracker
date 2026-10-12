@@ -14,19 +14,34 @@ const CustomTooltip = ({ active, payload, label, currency }) => {
 }
 
 export default function SavingsTrendChart({ data = [], loading, currency = 'INR' }) {
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
+        <div className="h-5 w-40 skeleton rounded mb-4" />
+        <div className="h-[240px] skeleton rounded-xl" />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700">
       <h3 className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-4">Savings Trend</h3>
-      <ResponsiveContainer width="100%" height={240}>
-        <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} />
-          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={v => `${v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}`} />
-          <Tooltip content={<CustomTooltip currency={currency} />} />
-          <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
-          <Line type="monotone" dataKey="savings" stroke="#6366f1" strokeWidth={2.5} dot={{ fill: '#6366f1', r: 4 }} activeDot={{ r: 6 }} />
-        </LineChart>
-      </ResponsiveContainer>
+      {data.length === 0 ? (
+        <div className="h-[240px] flex items-center justify-center text-slate-400 text-sm">
+          No savings trend data available
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={240}>
+          <LineChart data={data} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#94a3b8' }} />
+            <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickFormatter={v => `${v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}`} />
+            <Tooltip content={<CustomTooltip currency={currency} />} />
+            <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="3 3" />
+            <Line type="monotone" dataKey="savings" stroke="#6366f1" strokeWidth={2.5} dot={{ fill: '#6366f1', r: 4 }} activeDot={{ r: 6 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      )}
     </div>
   )
 }

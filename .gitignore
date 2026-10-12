@@ -1,13 +1,14 @@
-# Node modules
-node_modules/
+# Dependencies
+**/node_modules/
 
 # Build outputs
 client/dist/
+client/build/
 
-# Environments
-.env
-client/.env
-server/.env
+# Environment files (keep example templates shareable)
+**/.env
+**/.env.*
+!**/.env.example
 
 # IDE / Editor folders
 .vscode/

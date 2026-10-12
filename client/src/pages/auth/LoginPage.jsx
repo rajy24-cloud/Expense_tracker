@@ -46,7 +46,7 @@ export default function LoginPage() {
             <Wallet className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-500 to-purple-600 bg-clip-text text-transparent">
-            FinTrack
+            PerTrack
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">Smart Expense Tracker</p>
         </div>

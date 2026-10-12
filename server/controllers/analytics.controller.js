@@ -13,10 +13,11 @@ const getTotal = async (userId, type, matchExtra = {}) => {
 };
 
 // Helper: month date range
-const monthRange = (year, month) => ({
-  $gte: new Date(year, month - 1, 1),
-  $lte: new Date(year, month, 0, 23, 59, 59, 999),
-});
+const monthRange = (year, month) => {
+  const start = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+  const end = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+  return { $gte: start, $lte: end };
+};
 
 // Helper: get spending trend for a specific period
 const getTrendForPeriod = async (uid, period) => {
@@ -80,17 +81,18 @@ const getDashboard = asyncHandler(async (req, res) => {
   const prevYear = month === 1 ? year - 1 : year;
 
   // All-time totals
-  const [totalIncome, totalExpenses] = await Promise.all([
+  const [allTimeIncome, allTimeExpenses] = await Promise.all([
     getTotal(uid, "income"),
     getTotal(uid, "expense"),
   ]);
-  const totalBalance = totalIncome - totalExpenses;
+  const allTimeBalance = allTimeIncome - allTimeExpenses;
 
   // Monthly totals (selected month)
   const [monthlyIncome, monthlyExpenses] = await Promise.all([
     getTotal(uid, "income", { date: monthRange(year, month) }),
     getTotal(uid, "expense", { date: monthRange(year, month) }),
   ]);
+  const monthlyBalance = monthlyIncome - monthlyExpenses;
 
   // Previous month totals (for % change)
   const [previousMonthIncome, previousMonthExpenses] = await Promise.all([
@@ -103,14 +105,17 @@ const getDashboard = asyncHandler(async (req, res) => {
     .sort({ date: -1 })
     .limit(5);
 
-  // Last 12 months data
-  const twelveMonthsAgo = new Date();
-  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
-  twelveMonthsAgo.setDate(1);
-  twelveMonthsAgo.setHours(0, 0, 0, 0);
+  // Selected year monthly data (all 12 months for the selected year)
+  const startOfYear = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
+  const endOfYear = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
 
   const monthlyRaw = await Transaction.aggregate([
-    { $match: { userId: new mongoose.Types.ObjectId(uid), date: { $gte: twelveMonthsAgo } } },
+    {
+      $match: {
+        userId: new mongoose.Types.ObjectId(uid),
+        date: { $gte: startOfYear, $lte: endOfYear },
+      },
+    },
     {
       $group: {
         _id: { year: { $year: "$date" }, month: { $month: "$date" }, type: "$type" },
@@ -120,18 +125,19 @@ const getDashboard = asyncHandler(async (req, res) => {
     { $sort: { "_id.year": 1, "_id.month": 1 } },
   ]);
 
-  // Format monthly data into a unified array
+  // Format monthly data into a unified array for the selected year
   const monthlyMap = {};
+  for (let m = 1; m <= 12; m++) {
+    const key = `${year}-${String(m).padStart(2, "0")}`;
+    monthlyMap[key] = { month: key, year, monthNum: m, income: 0, expense: 0 };
+  }
   monthlyRaw.forEach(({ _id, total }) => {
     const key = `${_id.year}-${String(_id.month).padStart(2, "0")}`;
-    if (!monthlyMap[key]) {
-      monthlyMap[key] = { month: key, year: _id.year, monthNum: _id.month, income: 0, expense: 0 };
+    if (monthlyMap[key]) {
+      monthlyMap[key][_id.type] = total;
     }
-    monthlyMap[key][_id.type] = total;
   });
-  const monthlyData = Object.values(monthlyMap).sort((a, b) =>
-    a.month.localeCompare(b.month)
-  );
+  const monthlyData = Object.values(monthlyMap);
 
   // Category distribution for selected month
   const categoryRaw = await Transaction.aggregate([
@@ -174,11 +180,17 @@ const getDashboard = asyncHandler(async (req, res) => {
   };
 
   return new ApiResponse(200, "Dashboard data fetched successfully", {
-    totalIncome,
-    totalExpenses,
-    totalBalance,
+    // Selected month and year totals
+    totalIncome: monthlyIncome,
+    totalExpenses: monthlyExpenses,
+    totalBalance: monthlyBalance,
     monthlyIncome,
     monthlyExpenses,
+    monthlyBalance,
+    // All-time totals
+    allTimeIncome,
+    allTimeExpenses,
+    allTimeBalance,
     previousMonthIncome,
     previousMonthExpenses,
     recentTransactions,
@@ -318,6 +330,7 @@ const getAnalytics = asyncHandler(async (req, res) => {
     topCategory,
     monthlyData,
     categoryDistribution,
+    categoryBreakdown: categoryDistribution,
     spendingTrend,
     savingsTrend,
   }).send(res);
