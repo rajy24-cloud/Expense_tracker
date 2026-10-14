@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // Helper to sanitize and normalize the base API URL
 const getBaseURL = () => {
-  let url = import.meta.env.VITE_API_URL || 'https://expense-tracker-iyz2.onrender.com/api'
+  let url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
   if (typeof url === 'string') {
     url = url.trim()
     // Strip accidental leading '=' or quotes often pasted into deployment dashboards
@@ -10,7 +10,7 @@ const getBaseURL = () => {
     // Strip trailing slash
     url = url.replace(/\/+$/, '')
   }
-  return url || 'https://expense-tracker-iyz2.onrender.com/api'
+  return url 
 }
 
 const baseURL = getBaseURL()

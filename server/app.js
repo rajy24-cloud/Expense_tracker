@@ -1,6 +1,4 @@
 const express = require("express");
-const helmet = require("helmet");
-const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
@@ -17,11 +15,7 @@ const userRoutes = require("./routes/user.routes");
 
 const app = express();
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-  })
-);
+
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -40,15 +34,19 @@ const authLimiter = rateLimit({
   message: { success: false, message: "Too many authentication attempts, please try again later." },
 });
 
-const configuredOrigins = (process.env.CLIENT_URL || "")
-  .split(",")
-  .map((url) => url.trim().replace(/\/+$/, ""))
-  .filter(Boolean);
+// const configuredOrigins = (process.env.CLIENT_URL || "")
+//   .split(",")
+//   .map((url) => url.trim().replace(/\/+$/, ""))
+//   .filter(Boolean);
 
 
 
 app.use(cors({
-    origin: true,
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+         process.env.CLIENT_URL
+    ],
     credentials: true
 }));
 
@@ -57,7 +55,7 @@ if (process.env.NODE_ENV !== "test") {
   app.use(morgan("dev"));
 }
 
-// â”€â”€â”€ Body parsing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€â”€ Body parsing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â” € â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— â”— ⏩
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
@@ -89,6 +87,6 @@ app.use((req, res) => {
 });
 
 // â”€â”€â”€ Global error middleware (must be last) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-app.use(errorMiddleware);
+app.use(errorMiddleware); 
 
 module.exports = app;

@@ -5,7 +5,7 @@ const app = require("./app");
 const connectDB = require("./config/db");
 const { seedDefaultCategories } = require("./controllers/category.controller");
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT
 
 const startServer = async () => {
   // Connect to MongoDB
