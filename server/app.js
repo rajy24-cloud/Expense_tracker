@@ -45,36 +45,8 @@ const configuredOrigins = (process.env.CLIENT_URL || "")
   .map((url) => url.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
-const allowedOrigins = [
-  "https://ptracker1.vercel.app",
-  "http://localhost:5173",
-  "http://localhost:3000",
-  ...configuredOrigins,
-];
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
-      if (!origin) return callback(null, true);
-
-      const cleanOrigin = origin.replace(/\/+$/, "");
-      const isAllowed =
-        allowedOrigins.includes(cleanOrigin) ||
-        cleanOrigin.endsWith(".vercel.app") ||
-        process.env.NODE_ENV !== "production";
-
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Not allowed by CORS: ${origin}`));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors());
 
 // â”€â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (process.env.NODE_ENV !== "test") {
