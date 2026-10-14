@@ -46,7 +46,6 @@ const configuredOrigins = (process.env.CLIENT_URL || "")
   .filter(Boolean);
 
 
-const cors = require('cors');
 
 app.use(cors({
     origin: true,
