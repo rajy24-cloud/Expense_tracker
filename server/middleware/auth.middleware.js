@@ -1,10 +1,14 @@
-﻿const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/ApiError");
 const asyncHandler = require("../utils/asyncHandler");
 const { verifyToken } = require("../utils/jwt");
 const User = require("../models/User");
 
 const requireAuth = asyncHandler(async (req, res, next) => {
-  const token = req.cookies?.token;
+  let token = req.cookies?.token;
+
+  if (!token && req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
 
   if (!token) {
     throw new ApiError(401, "Access denied. No token provided.");

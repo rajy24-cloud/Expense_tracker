@@ -1,4 +1,4 @@
-﻿const User = require("../models/User");
+const User = require("../models/User");
 const Transaction = require("../models/Transaction");
 const Budget = require("../models/Budget");
 const Category = require("../models/Category");
@@ -82,7 +82,7 @@ const deleteAccount = asyncHandler(async (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   });
 
   return new ApiResponse(200, "Account deleted successfully", null).send(res);

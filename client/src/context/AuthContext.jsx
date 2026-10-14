@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const refreshUser = useCallback(async () => {
     try {
       const response = await api.get('/auth/me')
-      setUser(response.data.data?.user || response.data.user || response.data)
+      setUser(response.data.data?.user || response.data.user || response.data.data || response.data)
     } catch {
       setUser(null)
     }
@@ -20,8 +20,9 @@ export function AuthProvider({ children }) {
     const checkAuth = async () => {
       try {
         const response = await api.get('/auth/me')
-        setUser(response.data.data?.user || response.data.user || response.data)
+        setUser(response.data.data?.user || response.data.user || response.data.data || response.data)
       } catch {
+        localStorage.removeItem('token')
         setUser(null)
       } finally {
         setLoading(false)
@@ -32,14 +33,22 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     const response = await api.post('/auth/login', credentials)
-    const userData = response.data.data?.user || response.data.user || response.data
+    const token = response.data?.data?.token || response.data?.token
+    if (token) {
+      localStorage.setItem('token', token)
+    }
+    const userData = response.data.data?.user || response.data.user || response.data.data || response.data
     setUser(userData)
     return userData
   }
 
   const register = async (data) => {
     const response = await api.post('/auth/register', data)
-    const userData = response.data.data?.user || response.data.user || response.data
+    const token = response.data?.data?.token || response.data?.token
+    if (token) {
+      localStorage.setItem('token', token)
+    }
+    const userData = response.data.data?.user || response.data.user || response.data.data || response.data
     setUser(userData)
     return userData
   }
@@ -50,6 +59,7 @@ export function AuthProvider({ children }) {
     } catch {
       // ignore errors
     } finally {
+      localStorage.removeItem('token')
       setUser(null)
     }
   }
