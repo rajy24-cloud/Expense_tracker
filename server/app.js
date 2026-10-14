@@ -46,7 +46,12 @@ const configuredOrigins = (process.env.CLIENT_URL || "")
   .filter(Boolean);
 
 
-app.use(cors());
+const cors = require('cors');
+
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
 
 // â”€â”€â”€ Logging â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 if (process.env.NODE_ENV !== "test") {
